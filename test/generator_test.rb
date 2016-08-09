@@ -34,10 +34,10 @@ class GeneratorTest < Minitest::Test
   end
 
   def test_generate_fully_namespaced_class_name
-    @res = Beefcake::Generator.compile([], @req)
+    @res = Beefcake::Generator.compile(['Top'], @req)
     assert_equal(CodeGeneratorResponse, @res.class)
     assert_match(
-      / Protobuf\:\:Tutorial\:\:Person\:\:PhoneType/,
+      / Top\:\:Tutorial\:\:Person\:\:PhoneType/,
       @res.file.first.content
     )
     refute_match(

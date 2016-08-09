@@ -139,7 +139,6 @@ module Beefcake
     L = CodeGeneratorRequest::FieldDescriptorProto::Label
     T = CodeGeneratorRequest::FieldDescriptorProto::Type
 
-
     def self.compile(ns, req)
       file = req.proto_file.map do |file|
         g = new(StringIO.new)
@@ -192,19 +191,19 @@ module Beefcake
       puts "end"
     end
 
-    def message!(pkg, mt)
+    def message!(pkg, mt, ns)
       puts
       puts "class #{mt.name}"
 
       indent do
         ## Generate Types
         Array(mt.nested_type).each do |nt|
-          message!(pkg, nt)
+          message!(pkg, nt, ns)
         end
 
         ## Generate Fields
         Array(mt.field).each do |f|
-          field!(pkg, f)
+          field!(pkg, f, ns)
         end
       end
 
@@ -222,7 +221,7 @@ module Beefcake
       puts "end"
     end
 
-    def field!(pkg, f)
+    def field!(pkg, f, ns)
       # Turn the label into Ruby
       label = name_for(f, L, f.label)
 
@@ -239,14 +238,13 @@ module Beefcake
         end
         t.gsub!(/^\.*/, "")       # Remove leading `.`s
         t.gsub!(".", "::")  # Convert to Ruby namespacing syntax
-        namespaced_type(t, pkg)
+        namespaced_type(t, pkg, ns)
       else
         ":#{name_for(f, T, f.type)}"
       end
 
       # Finally, generate the declaration
       out = "%s %s, %s, %d" % [label, name, type, f.number]
-
       if f.default_value
         v = case f.type
         when T::TYPE_ENUM
@@ -263,13 +261,13 @@ module Beefcake
       puts out
     end
 
-    def namespaced_type(type, pkg)
+    def namespaced_type(type, pkg, ns)
       wires = Buffer::WIRES.keys
       type_key = type.gsub(/^:/, '').to_sym
       if wires.include?(type_key)
         type
       else
-        "Protobuf::#{pkg.capitalize}::#{type}"
+        ns.clone.push(pkg.capitalize, type).join('::')
       end
     end
 
@@ -294,7 +292,7 @@ module Beefcake
         end
 
         file.message_type.each do |mt|
-          message!(file.package, mt)
+          message!(file.package, mt, ns)
         end
       end
     end
