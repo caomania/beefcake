@@ -237,9 +237,9 @@ module Beefcake
         if pkg
           t = t.gsub(pkg, "") # Remove the leading package name
         end
-        t = t.gsub(/^\.*/, "")       # Remove leading `.`s
-
-        t.gsub(".", "::")  # Convert to Ruby namespacing syntax
+        t.gsub!(/^\.*/, "")       # Remove leading `.`s
+        t.gsub!(".", "::")  # Convert to Ruby namespacing syntax
+        namespaced_type(t, pkg)
       else
         ":#{name_for(f, T, f.type)}"
       end
@@ -261,6 +261,16 @@ module Beefcake
       end
 
       puts out
+    end
+
+    def namespaced_type(type, pkg)
+      wires = Buffer::WIRES.keys
+      type_key = type.gsub(/^:/, '').to_sym
+      if wires.include?(type_key)
+        type
+      else
+        "Protobuf::#{pkg.capitalize}::#{type}"
+      end
     end
 
     # Determines the name for a
