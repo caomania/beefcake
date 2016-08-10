@@ -33,11 +33,24 @@ class GeneratorTest < Minitest::Test
     assert_match(/module Top\s*\n\s*module Bottom/m, @res.file.first.content)
   end
 
-  def test_generate_fully_namespaced_class_name
+  def test_generate_top_namespaced_class_name
     @res = Beefcake::Generator.compile(['Top'], @req)
     assert_equal(CodeGeneratorResponse, @res.class)
     assert_match(
-      / Top\:\:Tutorial\:\:Person\:\:PhoneType/,
+      / Top\:\:Person\:\:PhoneType/,
+      @res.file.first.content
+    )
+    refute_match(
+      / Person\:\:PhoneType/,
+      @res.file.first.content
+    )
+  end
+
+  def test_generate_two_level_namespaced_class_name
+    @res = Beefcake::Generator.compile(['Top', 'Gun'], @req)
+    assert_equal(CodeGeneratorResponse, @res.class)
+    assert_match(
+      / Top\:\:Gun\:\:Person\:\:PhoneType/,
       @res.file.first.content
     )
     refute_match(
