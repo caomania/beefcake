@@ -267,18 +267,17 @@ module Beefcake
     #
     # @return [String] A correctly namespaced ruby class name
     def namespaced_type(type, pkg, ns)
-      wires = Buffer::WIRES.keys
       type_key = type.gsub(/^:/, '').to_sym
-      if wires.include?(type_key)
-        type
+      return type if Buffer::WIRES.keys.include?(type_key)
+
       type_pcs = type.split('.').reject!(&:empty?)
       namespace = ns.clone
-          if type_pcs.first == pkg
+      if type_pcs.first == pkg
         type_pcs.shift
-      elsif namespace.last.downcase == pkg.downcase
+      elsif namespace.last.casecmp(pkg)
         namespace.pop
       end
-      namespace.push(*type_pcs).join('::')
+      namespace.concat(type_pcs).join('::')
     end
 
     # Determines the name for a
